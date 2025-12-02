@@ -1,42 +1,63 @@
 import System.Environment (getArgs)
+import Data.List (foldl')
+import Data.Maybe (mapMaybe)
+import Text.Read (readMaybe)
 
 main :: IO ()
-main = do 
-  filename <- getArgs
-  file <- readFile $ head filename
-  let fileLines = lines file
-  let rotations = fileLines
-  let currentLocation = 50
-  let startZeroCount = 0
-  -- probably could reduce this with foldl but oh well
-  let finalZeroCount = applyRotations currentLocation rotations startZeroCount
-  print finalZeroCount
+main = do
+  [filename] <- getArgs
+  content <- readFile filename
+  print $ solve $ lines content
 
-applyRotations :: Int -> [String] -> Int -> Int
-applyRotations _ [] count = count
-applyRotations currentLocation (nextLocation:remainingLocations) count =
-  let (direction, magnitude) = parseLocation nextLocation
-      -- 100 is a full rotation back to the same spot
-      remainingMovement = magnitude `mod` 100 
-      newLocation = normalizeLocation $ case direction of
-                      "L" -> currentLocation - remainingMovement
-                      "R" -> currentLocation + remainingMovement
-      atZero = if newLocation == 0 && currentLocation /= 0
-               then 1
-               else 0
+-- Puzzle solution below
 
-  in applyRotations newLocation remainingLocations (count + atZero)
+type Input = [String]
+type Output = Int
 
+data Direction = L | R deriving (Show, Read)
+type Rotation = (Direction, Position)
 
-parseLocation :: String -> (String, Int)
-parseLocation location = 
-  let direction = take 1 location
-      magnitude = read (drop 1 location) :: Int
+newtype Position = Position Int deriving (Show, Eq, Num)
+newtype ZeroCount = ZeroCount Int deriving (Show, Num)
+
+data State = State 
+  { position :: Position
+  , zeroCount :: ZeroCount
+  } deriving Show
+
+fullRotation :: Int
+fullRotation = 100
+
+initialPosition :: Position
+initialPosition = Position 50
+
+initialState :: State
+initialState = State initialPosition (ZeroCount 0)
+
+solve :: Input -> Output
+solve rotationStrings = 
+  let rotations = map parseRotation rotationStrings
+      State _ (ZeroCount finalCount) = foldl' processRotation initialState rotations
+  in finalCount
+
+processRotation :: State -> Rotation -> State
+processRotation (State currentPos@(Position current) (ZeroCount count)) (direction, Position magnitude) =
+  let remainingMovement = magnitude `mod` fullRotation
+      newPos@(Position new) = normalizePosition $ case direction of
+        L -> Position (current - remainingMovement)
+        R -> Position (current + remainingMovement)
+      crossedZero = new == 0 && current /= 0
+      newCount = ZeroCount $ count + if crossedZero then 1 else 0
+  in State newPos newCount
+
+parseRotation :: String -> Rotation
+parseRotation rotation = 
+  let direction = read $ take 1 rotation
+      magnitude = Position $ read $ drop 1 rotation :: Int
   in (direction, magnitude)
 
--- Normalize location to be within 0-99
-normalizeLocation :: Int -> Int
-normalizeLocation location
-  | location < 0 = location + 100
-  | location >= 100 = location - 100
-  | otherwise = location
+normalizePosition :: Position -> Position
+normalizePosition (Position pos)
+  | pos < 0 = Position (pos + fullRotation)
+  | pos >= fullRotation = Position (pos - fullRotation)
+  | otherwise = Position pos

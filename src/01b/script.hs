@@ -1,49 +1,65 @@
 import System.Environment (getArgs)
+import Data.List (foldl')
 
 main :: IO ()
-main = do 
-  filename <- getArgs
-  file <- readFile $ head filename
-  let fileLines = lines file
-  let rotations = fileLines
-  let currentLocation = 50
-  let startZeroCount = 0
-  -- probably could reduce this with foldl but oh well
-  let finalZeroCount = applyRotations currentLocation rotations startZeroCount
-  print finalZeroCount
+main = do
+  [filename] <- getArgs
+  content <- readFile filename
+  print $ solve $ lines content
 
-applyRotations :: Int -> [String] -> Int -> Int
-applyRotations _ [] count = count
-applyRotations currentLocation (nextLocation:remainingLocations) count =
-  let (direction, magnitude) = parseLocation nextLocation
-      -- Each full rotation counts as passing zero once
-      fullRotations = magnitude `div` 100
-      remainingMovement = magnitude `mod` 100 
+-- Puzzle solution below
+
+type Input = [String]
+type Output = Int
+
+data Direction = L | R deriving (Show, Read)
+newtype Position = Position Int deriving (Show, Eq, Num)
+type Rotation = (Direction, Position)
+newtype ZeroCount = ZeroCount Int deriving (Show, Num)
+
+data State = State 
+  { position :: Position
+  , zeroCount :: ZeroCount
+  } deriving Show
+
+fullRotation :: Int
+fullRotation = 100
+
+initialPosition :: Position
+initialPosition = Position 50
+
+initialState :: State
+initialState = State initialPosition (ZeroCount 0)
+
+solve :: Input -> Output
+solve rotationStrings = 
+  let rotations = map parseRotation rotationStrings
+      State _ (ZeroCount finalCount) = foldl' processRotation initialState rotations
+  in finalCount
+
+processRotation :: State -> Rotation -> State
+processRotation (State currentPos@(Position current) (ZeroCount count)) (direction, Position magnitude) =
+  let fullRotations = magnitude `div` fullRotation
+      remainingMovement = magnitude `mod` fullRotation
       newLocation = case direction of
-                      "L" -> currentLocation - remainingMovement
-                      "R" -> currentLocation + remainingMovement
-      (normalizedLocation, isNormalized) = normalizeLocation newLocation
-      -- If we did a normalization and we were not on zero before, we must have crossed zero or be on zero
-      isNormalizedZero = if currentLocation /= 0 && isNormalized == 1 then 1 else 0
-      -- If we have ended up on zero and we were not on zero before it means the last rotation wasnt counted
-      -- Normalization now has it's own rules, so this is just the remaining case
-      atZero = if isNormalized /= 1 && normalizedLocation == 0 && currentLocation /= 0
-               then 1
-               else 0
-      -- Sum the cases
-      zeros = fullRotations + atZero + isNormalizedZero
-  in applyRotations normalizedLocation remainingLocations (count + zeros)
+        L -> current - remainingMovement
+        R -> current + remainingMovement
+      (normalizedPos@(Position normalized), wasNormalized) = normalizePosition (Position newLocation)
+      normalizedZeros = if current /= 0 && wasNormalized then 1 else 0
+      directZeros = if not wasNormalized && normalized == 0 && current /= 0 then 1 else 0
+      totalZeros = fullRotations + normalizedZeros + directZeros
+      newCount = ZeroCount $ count + totalZeros
+  in State normalizedPos newCount
 
 
-parseLocation :: String -> (String, Int)
-parseLocation location = 
-  let direction = take 1 location
-      magnitude = read (drop 1 location) :: Int
+parseRotation :: String -> Rotation
+parseRotation rotation = 
+  let direction = read $ take 1 rotation
+      magnitude = Position $ read $ drop 1 rotation
   in (direction, magnitude)
 
--- Normalize location to be within 0-99, include if we did anything
-normalizeLocation :: Int -> (Int, Int)
-normalizeLocation location
-  | location < 0 = (location + 100, 1)
-  | location >= 100 = (location - 100, 1)
-  | otherwise = (location, 0)
+normalizePosition :: Position -> (Position, Bool)
+normalizePosition (Position pos)
+  | pos < 0 = (Position (pos + fullRotation), True)
+  | pos >= fullRotation = (Position (pos - fullRotation), True)
+  | otherwise = (Position pos, False)
