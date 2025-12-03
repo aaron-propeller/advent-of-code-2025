@@ -12,8 +12,11 @@ main = do
   end <- getCPUTime
   
   let diff = fromIntegral (end - start) / (10^12)
+      diffMicros = fromIntegral (end - start) / (10^6)
   printf "Result: %s\n" (show result)
-  printf "Execution time: %.3f seconds\n" (diff :: Double)
+  if diff < 0.001
+    then printf "Execution time: %.0f microseconds\n" (diffMicros :: Double)
+    else printf "Execution time: %.6f seconds\n" (diff :: Double)
 
 -- Puzzle solution below
 
