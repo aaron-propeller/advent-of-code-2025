@@ -1,6 +1,6 @@
 # Advent of Code 2025
 
-![AI Disclaimer](https://img.shields.io/badge/AI-Project%20Setup%20Only-blue?style=flat-square&logo=robot) ![Human Solutions](https://img.shields.io/badge/Daily%20Puzzles-Human%20Solved-green?style=flat-square&logo=brain)
+![AI Disclaimer](https://img.shields.io/badge/Project%20Setup-AI-blue?style=flat-square&logo=robot) ![Human Solutions](https://img.shields.io/badge/Daily%20Puzzles-Human-green?style=flat-square&logo=brain)
 
 > **AI Usage Disclaimer**: AI was used to set up the project infrastructure, tooling, and development environment. AI was **not** used in solving the daily Advent of Code puzzles - all puzzle solutions are written by humans.
 
