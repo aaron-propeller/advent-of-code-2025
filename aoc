@@ -11,10 +11,11 @@ usage() {
     echo "  run <day> [input_file]  - Build and run once"
     echo "  install                 - Install to ./bin/"
     echo ""
-    echo "Day format: XX (XX = day with two digits)"
     echo "Examples:"
-    echo "  ./aoc day 01 input.txt"
-    echo "  ./aoc run 12 sample.txt"
+    echo "  ./aoc day 01           # Auto-reload, runs both sample.txt and input.txt"
+    echo "  ./aoc day 01 file.txt  # Auto-reload with specific file"
+    echo "  ./aoc run 12           # Run once, both sample.txt and input.txt"
+    echo "  ./aoc run 12 file.txt  # Run once with specific file"
 }
 
 if [ $# -eq 0 ]; then
@@ -33,12 +34,18 @@ case "$command" in
         fi
         
         day="$1"
-        input_file="${2:-input.txt}"
+        shift
         
-        echo "Starting ghcid for day $day with input $input_file"
+        echo "Starting ghcid for day $day"
         echo "Press Ctrl+C to exit."
         
-        ghcid --command="cabal repl" --run="runDay \"$day\" \"$input_file\""
+        if [ $# -gt 0 ]; then
+            # Pass additional arguments if provided
+            ghcid --command="cabal repl" --run=":main $day $1"
+        else
+            # No additional arguments, let Haskell handle defaults
+            ghcid --command="cabal repl" --run=":main $day"
+        fi
         ;;
         
     "run")

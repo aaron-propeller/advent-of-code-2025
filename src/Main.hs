@@ -1,9 +1,10 @@
 import System.Environment (getArgs)
 import System.Exit (die)
-import Data.Char (toLower)
+import Data.Char (toLower, isDigit)
 import qualified Data.Map as Map
 import Data.Time (getCurrentTime, diffUTCTime)
 import Control.Exception (evaluate)
+import Control.Monad (when)
 import Text.Printf (printf)
 import qualified Day01.Day01 as Day01
 import qualified Day02.Day02 as Day02
@@ -18,11 +19,7 @@ import qualified Day10.Day10 as Day10
 import qualified Day11.Day11 as Day11
 import qualified Day12.Day12 as Day12
 
-type Solver = [String] -> Int
 type DayRunner = [String] -> (Int, Int)
-
-notImplementedDay :: DayRunner
-notImplementedDay _ = (error "Part A not implemented", error "Part B not implemented")
 
 dayRunners :: Map.Map String DayRunner
 dayRunners = Map.fromList
@@ -44,16 +41,17 @@ main :: IO ()
 main = do
     args <- getArgs
     case args of
+        [day] -> runDayBoth day  -- Run both sample and input
         [day, inputFile] -> runDay day inputFile
         _ -> usage
 
 usage :: IO ()
 usage = die $ unlines
-    [ "Usage: aoc <day> <input-file>"
+    [ "Usage: aoc <day> [input-file]"
     , ""
     , "Examples:"
-    , "  aoc 1 input.txt"
-    , "  aoc 4 sample.txt"
+    , "  aoc 1              # Runs both Day01/sample.txt and Day01/input.txt"
+    , "  aoc 4 custom.txt   # Uses custom file path"
     , ""
     , "Available days: " ++ unwords (Map.keys dayRunners)
     ]
@@ -63,15 +61,14 @@ validateDayFormat dayStr = do
     let day = map toLower dayStr
     
     -- Check format (should be 1-2 digits)
-    if not (all (\c -> c >= '0' && c <= '9') day) || null day || length day > 2
-        then die $ "Invalid day format: " ++ dayStr ++ ". Expected 1-2 digits (e.g., 1, 04, 12)"
-        else return ()
+    when (not (all isDigit day) || null day || length day > 2) $
+        die $ "Invalid day format: " ++ dayStr ++ ". Expected 1-2 digits (e.g., 1, 04, 12)"
     
     -- Normalize to 2 digits and check range
     let dayNum = read day :: Int
-    if dayNum < 1 || dayNum > 25
-        then die $ "Day must be between 1 and 25, got: " ++ show dayNum
-        else return $ printf "%02d" dayNum
+    when (dayNum < 1 || dayNum > 25) $
+        die $ "Day must be between 1 and 25, got: " ++ show dayNum
+    return $ printf "%02d" dayNum
 
 runDay :: String -> String -> IO ()
 runDay dayStr inputFile = do
@@ -112,3 +109,18 @@ runDay dayStr inputFile = do
             printf "Total time: %.6f ms\n" (realToFrac (parseTime + totalSolveTime) * 1000 :: Double)
             
         Nothing     -> die $ "Unknown day: " ++ dayStr ++ ". Run without arguments for usage."
+
+buildInputPath :: String -> String -> String
+buildInputPath day fileType = "src/Day" ++ day ++ "/" ++ fileType ++ ".txt"
+
+runDayBoth :: String -> IO ()
+runDayBoth dayStr = do
+    day <- validateDayFormat dayStr
+    let sampleFile = buildInputPath day "sample"
+    let inputFile = buildInputPath day "input"
+    
+    putStrLn $ "=== Running Day " ++ day ++ " with sample.txt ==="
+    runDay dayStr sampleFile
+    putStrLn ""
+    putStrLn $ "=== Running Day " ++ day ++ " with input.txt ==="
+    runDay dayStr inputFile
