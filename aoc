@@ -2,36 +2,19 @@
 
 # Advent of Code 2025 runner script
 
-# Validate day format XXY
-validate_day_format() {
-    local input="$1"
-    
-    if [[ ! "$input" =~ ^[0-9][0-9][ab]$ ]]; then
-        echo "Invalid day format: $input" >&2
-        echo "Expected format: XXy (e.g., 01a, 12b)" >&2
-        exit 1
-    fi
-    
-    # Check day is in valid range (01-12)
-    local day_num="${input:0:2}"
-    if [[ "$day_num" -lt 1 || "$day_num" -gt 12 ]]; then
-        echo "Day must be between 01 and 12, got: $day_num" >&2
-        exit 1
-    fi
-}
 
 usage() {
     echo "Usage: ./aoc <command> [args...]"
     echo ""
     echo "Commands:"
-    echo "  day <day_part> [input_file]  - Auto-reload with ghcid"
-    echo "  run <day_part> [input_file]  - Build and run once"
-    echo "  install                      - Install to ./bin/"
+    echo "  day <day> [input_file]  - Auto-reload with ghcid"
+    echo "  run <day> [input_file]  - Build and run once"
+    echo "  install                 - Install to ./bin/"
     echo ""
-    echo "Day format: XXy (XX = day with two digits, y = a or b)"
+    echo "Day format: XX (XX = day with two digits)"
     echo "Examples:"
-    echo "  ./aoc day 01a input.txt"
-    echo "  ./aoc run 12b sample.txt"
+    echo "  ./aoc day 01 input.txt"
+    echo "  ./aoc run 12 sample.txt"
 }
 
 if [ $# -eq 0 ]; then
@@ -45,24 +28,20 @@ shift
 case "$command" in
     "day")
         if [ $# -eq 0 ]; then
-            echo "Usage: ./aoc day <day_part> [input_file]"
+            echo "Usage: ./aoc day <day> [input_file]"
             exit 1
         fi
         
-        day_part="$1"
-        validate_day_format "$day_part"
+        day="$1"
         input_file="${2:-input.txt}"
         
-        echo "Starting ghcid for day $day_part with input $input_file"
+        echo "Starting ghcid for day $day with input $input_file"
         echo "Press Ctrl+C to exit."
         
-        ghcid --command="cabal repl" --run="runDay \"$day_part\" \"$input_file\""
+        ghcid --command="cabal repl" --run="runDay \"$day\" \"$input_file\""
         ;;
         
     "run")
-        if [ $# -gt 0 ]; then
-            validate_day_format "$1"
-        fi
         cabal run aoc -- "$@"
         ;;
         

@@ -1,10 +1,8 @@
 module AoCUtils where
 
-import Data.List (foldl')
 import Data.Maybe (mapMaybe)
 import Text.Read (readMaybe)
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 
 -- Common type aliases
 type Coord = (Int, Int)
@@ -23,6 +21,7 @@ splitOn :: Char -> String -> [String]
 splitOn delimiter = foldr f [[]]
   where f c l@(x:xs) | c == delimiter = []:l
                      | otherwise = (c:x):xs
+        f _ [] = []
 
 -- Grid operations
 parseGrid :: [String] -> Grid
