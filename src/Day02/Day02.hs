@@ -1,6 +1,7 @@
 module Day02.Day02 (partA, partB) where
 
 import Text.Regex.Posix (AllTextMatches(getAllTextMatches), (=~))
+import AoCUtils (chunks)
 
 type Input = [String]
 type Output = Int
@@ -36,10 +37,6 @@ hasRepeatB s = or $ [ checkSubstringsOfLength len s | len <- [1..(length s `div`
 
 checkSubstringsOfLength :: Int -> String -> Bool
 checkSubstringsOfLength len s =
-  case splitIntoLengths len s of
+  case chunks len s of
     [] -> error "Empty list in checkSubstringsOfLength"
     (x:xs) -> all (== x) xs
-
-splitIntoLengths :: Int -> String -> [String]
-splitIntoLengths _ [] = []
-splitIntoLengths n xs = take n xs : splitIntoLengths n (drop n xs)

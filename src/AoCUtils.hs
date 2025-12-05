@@ -16,12 +16,21 @@ parseNumbers = mapMaybe readMaybe . words
 parseInt :: String -> Maybe Int
 parseInt = readMaybe
 
--- Split on any character
+-- Split on any character  
 splitOn :: Char -> String -> [String]
 splitOn delimiter = foldr f [[]]
   where f c l@(x:xs) | c == delimiter = []:l
                      | otherwise = (c:x):xs
         f _ [] = []
+
+-- Generic splitOn that works for any list type
+splitOnList :: Eq a => a -> [a] -> [[a]]
+splitOnList _ [] = [[]]
+splitOnList sep (x:xs)
+  | x == sep = [] : splitOnList sep xs
+  | otherwise = case splitOnList sep xs of
+      (y:ys) -> (x:y):ys
+      [] -> [[x]]
 
 -- Grid operations
 parseGrid :: [String] -> Grid
