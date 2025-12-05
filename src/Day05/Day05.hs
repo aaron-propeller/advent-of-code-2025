@@ -1,6 +1,6 @@
 module Day05.Day05 (partA, partB) where
 
-import AoCUtils (splitOn, splitOnList)
+import AoCUtils (splitOn, splitAtSep)
 import Data.List (sortBy)
 import Data.Ord (comparing)
 
@@ -24,22 +24,17 @@ partB input =
 
 parseInput :: Input -> ([Range], [Int])
 parseInput input =
-  case splitOnList "" input of
-    (rangeLines:availableLines:_) -> 
-      let fresh = map parseRange rangeLines
-          available = map read availableLines :: [Int]
-      in (fresh, available)
-    [_] -> error "Invalid input"
-    [] -> error "Empty input"
+  let (rangeLines, availableLines) = splitAtSep "" input
+      fresh = map parseRange rangeLines
+      available = map read availableLines :: [Int]
+  in (fresh, available)
 
 parseRange :: String -> Range 
 parseRange line = 
-  case splitOn '-' line of
-    [startStr, endStr] -> 
-      let start = read startStr :: Int
-          end = read endStr :: Int
-      in (start, end)
-    _ -> error "Invalid range format"
+  let (startStr, endStr) = splitAtSep '-' line
+      start = read startStr :: Int
+      end = read endStr :: Int
+  in (start, end)
 
 inRange :: Int -> Range -> Bool
 inRange n (start, end) = n >= start && n <= end
