@@ -1,4 +1,7 @@
-module AoCUtils.AoCList where
+module AoCUtils.AoCList (
+    count, safeHead, safeTail,
+    chunks, windows, pairUp
+) where
 
 -- Common utility functions
 count :: (a -> Bool) -> [a] -> Int
@@ -19,3 +22,9 @@ chunks n xs = take n xs : chunks n (drop n xs)
 
 windows :: Int -> [a] -> [[a]]
 windows n xs = map (take n) (take (length xs - n + 1) (iterate tail xs))
+
+-- Pair up elements into tuples, error if odd number
+pairUp :: [a] -> [(a, a)]
+pairUp [] = []
+pairUp [_] = error "pairUp: odd number of elements"
+pairUp (x:y:xs) = (x, y) : pairUp xs

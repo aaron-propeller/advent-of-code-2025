@@ -1,35 +1,31 @@
 module AoCDays.Day02 (partA, partB) where
 
 import Text.Regex.Posix (AllTextMatches(getAllTextMatches), (=~))
+import AoCUtils.AoCList (pairUp)
 
 type Input = [String]
 type Output = Int
 
-pairUp :: [a] -> [[a]]
-pairUp [] = []
-pairUp [_] = []
-pairUp (x:y:xs) = [x,y] : pairUp xs
-
 partA :: Input -> Output
-partA input =
-  let inputStr = head input
-      extracted = map read (getAllTextMatches (inputStr =~ "[0-9]+")) :: [Int]
-      numbers = map show $ concat [ [start..end] | [start, end] <- pairUp extracted ]
-      repeats = filter hasRepeatA numbers
-  in sum $ map read repeats
+partA = sumRepeatsA . expandRanges . extractNumbers
 
 partB :: Input -> Output
-partB input =
-  let inputStr = head input
-      extracted = map read (getAllTextMatches (inputStr =~ "[0-9]+")) :: [Int]
-      numbers = map show $ concat [ [start..end] | [start, end] <- pairUp extracted ]
-      repeats = filter hasRepeatB numbers
-  in sum $ map read repeats
+partB = sumRepeatsB . expandRanges . extractNumbers
+
+extractNumbers :: Input -> [Int]
+extractNumbers = map read . getAllTextMatches . (=~ "[0-9]+") . head
+
+expandRanges :: [Int] -> [String]
+expandRanges = map show . concatMap (\(start, end) -> [start..end]) . pairUp
+
+sumRepeatsA :: [String] -> Int
+sumRepeatsA = sum . map read . filter hasRepeatA
+
+sumRepeatsB :: [String] -> Int
+sumRepeatsB = sum . map read . filter hasRepeatB
 
 hasRepeatA :: String -> Bool
-hasRepeatA s = do
-  let (first, second) = splitAt (length s `div` 2) s 
-  first == second
+hasRepeatA s = uncurry (==) $ splitAt (length s `div` 2) s
 
 hasRepeatB :: String -> Bool
 hasRepeatB s = or $ [ checkSubstringsOfLength len s | len <- [1..(length s `div` 2)] ]
