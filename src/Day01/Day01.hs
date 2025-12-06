@@ -41,7 +41,7 @@ partB rotationStrings =
 processRotationA :: State -> Rotation -> State
 processRotationA (State (Position current) (ZeroCount count)) (direction, Position magnitude) =
   let remainingMovement = magnitude `mod` fullRotation
-      newPos@(Position new) = normalizePositionA $ case direction of
+      newPos@(Position new) = fst $ normalizePosition $ case direction of
         L -> Position (current - remainingMovement)
         R -> Position (current + remainingMovement)
       crossedZero = new == 0 && current /= 0
@@ -55,7 +55,7 @@ processRotationB (State (Position current) (ZeroCount count)) (direction, Positi
       newLocation = case direction of
         L -> current - remainingMovement
         R -> current + remainingMovement
-      (normalizedPos@(Position normalized), wasNormalized) = normalizePositionB (Position newLocation)
+      (normalizedPos@(Position normalized), wasNormalized) = normalizePosition (Position newLocation)
       normalizedZeros = if current /= 0 && wasNormalized then 1 else 0
       directZeros = if not wasNormalized && normalized == 0 && current /= 0 then 1 else 0
       totalZeros = fullRotations + normalizedZeros + directZeros
@@ -68,14 +68,8 @@ parseRotation rotation =
       magnitude = Position $ read $ drop 1 rotation
   in (direction, magnitude)
 
-normalizePositionA :: Position -> Position
-normalizePositionA (Position pos)
-  | pos < 0 = Position (pos + fullRotation)
-  | pos >= fullRotation = Position (pos - fullRotation)
-  | otherwise = Position pos
-
-normalizePositionB :: Position -> (Position, Bool)
-normalizePositionB (Position pos)
+normalizePosition :: Position -> (Position, Bool)
+normalizePosition (Position pos)
   | pos < 0 = (Position (pos + fullRotation), True)
   | pos >= fullRotation = (Position (pos - fullRotation), True)
   | otherwise = (Position pos, False)

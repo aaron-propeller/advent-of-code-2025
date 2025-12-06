@@ -1,6 +1,6 @@
 module Day05.Day05 (partA, partB) where
 
-import AoCUtils (splitOn, splitAtSep)
+import AoCUtils (splitAtSep)
 import Data.List (sortBy)
 import Data.Ord (comparing)
 

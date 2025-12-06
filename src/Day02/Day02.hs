@@ -16,7 +16,8 @@ partA input =
   let inputStr = head input
       extracted = map read (getAllTextMatches (inputStr =~ "[0-9]+")) :: [Int]
       numbers = map show $ concat [ [start..end] | [start, end] <- pairUp extracted ]
-      repeats = filter hasRepeatA numbers
+      strLen = length inputStr
+      repeats = filter (hasRepeat (strLen `div` 2)) numbers
   in sum $ map read repeats
 
 partB :: Input -> Output
@@ -24,16 +25,11 @@ partB input =
   let inputStr = head input
       extracted = map read (getAllTextMatches (inputStr =~ "[0-9]+")) :: [Int]
       numbers = map show $ concat [ [start..end] | [start, end] <- pairUp extracted ]
-      repeats = filter hasRepeatB numbers
+      repeats = filter (hasRepeat 1) numbers
   in sum $ map read repeats
 
-hasRepeatA :: String -> Bool
-hasRepeatA s = do
-  let (first, second) = splitAt (length s `div` 2) s 
-  first == second
-
-hasRepeatB :: String -> Bool
-hasRepeatB s = or $ [ checkSubstringsOfLength len s | len <- [1..(length s `div` 2)] ]
+hasRepeat :: Int -> String -> Bool
+hasRepeat minLen s = or $ [ checkSubstringsOfLength len s | len <- [minLen..(length s `div` 2)] ]
 
 checkSubstringsOfLength :: Int -> String -> Bool
 checkSubstringsOfLength len s =
