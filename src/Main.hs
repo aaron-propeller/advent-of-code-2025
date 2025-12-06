@@ -9,4 +9,4 @@ main = do
   case parseArgs availableDays args of
     Right (RunBoth day) -> executeDayBoth day
     Right (RunSingle day inputFile) -> executeDaySingle day inputFile
-    Left err -> showUsage availableDays
+    Left _ -> showUsage availableDays
