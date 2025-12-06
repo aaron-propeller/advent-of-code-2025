@@ -1,2 +1,3 @@
 input.txt filter=git-crypt diff=git-crypt
 sample.txt filter=git-crypt diff=git-crypt
+expected.txt filter=git-crypt diff=git-crypt

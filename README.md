@@ -9,25 +9,42 @@ Solutions for the [Advent of Code 2025](https://adventofcode.com/2025) puzzles, 
 ## Project Structure
 
 ```
-src/
-├── AoCUtils.hs         # Common utilities and helper functions
-├── Main.hs             # Main program entry point
-├── Day01/
-│   ├── Day01.hs        # Day 1 solution (both parts A & B)
-│   ├── input.txt       # Real puzzle input (git-crypt encrypted)
-│   └── sample.txt      # Sample/test input (git-crypt encrypted)
-├── Day02/
-│   ├── Day02.hs        # Day 2 solution (both parts A & B)
-│   ├── input.txt       # Real puzzle input (git-crypt encrypted)
-│   └── sample.txt      # Sample/test input (git-crypt encrypted)
-└── Day03-Day12/        # Days 3-12 follow same structure
+├── inputs/                    # All input/test data files
+│   ├── day01/
+│   │   ├── input.txt         # Real puzzle input (git-crypt encrypted)
+│   │   ├── sample.txt        # Sample/test input
+│   │   └── expected.txt      # Expected results for validation
+│   └── day02-day12/          # Days 2-12 follow same structure
+│
+└── src/                       # All source code
+    ├── AoCDays/              # Daily puzzle solutions
+    │   ├── Day01.hs          # Day 1 solution (partA & partB)
+    │   ├── Day02.hs          # Day 2 solution (partA & partB)
+    │   └── ... Day12.hs      # Days 3-12 solutions
+    │
+    ├── AoCUtils/             # Challenge-specific utilities
+    │   ├── AoCGrid.hs        # Grid operations, coordinates, directions
+    │   ├── AoCList.hs        # List manipulation (chunks, windows, etc.)
+    │   ├── AoCParsing.hs     # Text parsing helpers
+    │   └── AoCRange.hs       # Range operations and parsing
+    │
+    ├── AoCRunner/            # Application infrastructure
+    │   ├── AoCCLI.hs         # Command line interface
+    │   ├── AoCDisplay.hs     # Enhanced result display
+    │   ├── AoCExecution.hs   # Timing and execution engine
+    │   ├── AoCFiles.hs       # File I/O operations
+    │   └── AoCRegistry.hs    # Day runner registry
+    │
+    └── Main.hs               # Main entry point (12 lines!)
 ```
 
-Each day is self-contained with:
+Each day includes:
 
-- **Haskell module** with `partA` and `partB` functions
-- **input.txt** - Real puzzle input (encrypted for privacy)
-- **sample.txt** - Test data from puzzle description (safe to share)
+- **Solution module** (`AoCDays/DayXX.hs`) with `partA` and `partB` functions
+- **Input files** in `inputs/dayXX/`:
+  - `input.txt` - Real puzzle input (encrypted for privacy)
+  - `sample.txt` - Test data from puzzle description
+  - `expected.txt` - Expected sample results for validation
 
 ## Requirements
 
@@ -44,100 +61,75 @@ cabal build
 
 ## Running Solutions
 
-### Automatic Input Selection (Recommended)
+### Enhanced Mode (Recommended)
 
-Run with just a day number to test both sample and real inputs:
+Run with just a day number to test both sample and real inputs with validation:
 
 ```bash
-# Using the aoc script
-./aoc run <day>
-
 # Using cabal directly
-cabal run aoc -- <day>
+cabal exec aoc <day>
 
 # Examples:
-./aoc run 04        # Runs Day04/sample.txt then Day04/input.txt
-cabal run aoc -- 01 # Runs Day01/sample.txt then Day01/input.txt
+cabal exec aoc 5     # Runs both sample and input for Day 5
+cabal exec aoc 01    # Runs both sample and input for Day 1
 ```
 
-Output format:
+Enhanced output format with validation:
 
 ```
-=== Running Day 04 with sample.txt ===
-Parse time: 0.123 ms
-Part A: 42
-Part A time: 0.456 ms
-Part B: 84
-Part B time: 0.789 ms
-Total time: 1.368 ms
+=== Day 05 Results ===
 
-=== Running Day 04 with input.txt ===
-Parse time: 1.234 ms
-Part A: 12345
-Part A time: 5.678 ms
-Part B: 67890
-Part B time: 9.012 ms
-Total time: 15.924 ms
+📋 SAMPLE:
+   Part A: 3 ✅ (Expected: 3) [0.059ms] 🚀
+   Part B: 14 ✅ (Expected: 14) [0.016ms] 🚀
+
+🎯 INPUT:
+   Part A: 782 [3.749ms] 🚀
+   Part B: 353863745078671 [0.500ms] 🚀
+
+Parse time: 0.398500 ms
+Part A time: 1.904000 ms (avg)
+Part B time: 0.258000 ms (avg)
+Total time: 5.121000 ms
 ```
 
-### Custom Input File
+**Performance indicators:**
 
-Specify a custom input file:
+- 🚀 Very fast (<10ms)
+- ⚡ Fast (<100ms)
+- 🐌 Slow (>1s)
 
-```bash
-./aoc run <day> <input-file>
-cabal run aoc -- <day> <input-file>
+## Features
 
-# Examples:
-./aoc run 01 Day01/sample.txt
-./aoc run 04 custom-input.txt
-cabal run aoc -- 02 my-test.txt
-```
+### Sample Validation
 
-## Available Scripts
+- Compare sample results against expected values in `expected.txt`
+- Visual indicators (✅/❌) show validation status
+- Automatic mismatch detection with warnings
 
-The `./aoc` script provides convenient shortcuts:
+### Performance Monitoring
 
-```bash
-# Build and run once with both sample and input
-./aoc run <day>
+- Detailed timing for parsing and both parts
+- Average timing across sample and input runs
+- Performance indicators for quick assessment
 
-# Build and run with specific file
-./aoc run <day> <file>
+### Modular Architecture
 
-# Auto-reload development with ghcid (rebuilds on file changes)
-./aoc day <day>
-./aoc day <day> <file>
-
-# Install binary to ./bin/
-./aoc install
-```
-
-### Examples
-
-```bash
-# Run day 4 with both sample and input files
-./aoc run 04
-
-# Run day 1 with specific file
-./aoc run 01 Day01/sample.txt
-
-# Development mode with auto-reload (both files)
-./aoc day 04
-
-# Development mode with specific file
-./aoc day 04 Day04/sample.txt
-
-# Install for system-wide use
-./aoc install
-```
+- **AoCUtils**: Reusable challenge utilities (parsing, grids, ranges)
+- **AoCRunner**: Application infrastructure (CLI, timing, display)
+- **AoCDays**: Individual day solutions
 
 ## Input Files & Security
 
 ### File Types
 
+All files are encrypted with git-crypt.
+
+Located in `inputs/dayXX/`:
+
 - **sample.txt**: Test inputs from puzzle descriptions (committed unencrypted)
 - **input.txt**: Real puzzle inputs (encrypted with git-crypt for privacy)
+- **expected.txt**: Expected sample results for automated validation
 
 ### git-crypt Setup
 
