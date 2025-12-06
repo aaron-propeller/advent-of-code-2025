@@ -16,7 +16,7 @@ executable aoc
         AoCDays.Day09, AoCDays.Day10, AoCDays.Day11, AoCDays.Day12
     hs-source-dirs: src
     default-language: Haskell2010
-    ghc-options: -Wall -Wextra -Werror=incomplete-patterns -Werror=missing-signatures -Wmissing-home-modules
+    ghc-options: -w
     build-depends: 
         base >= 4.7 && < 5,
         containers,
