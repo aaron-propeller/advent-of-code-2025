@@ -5,15 +5,15 @@ import AoCRunner.AoCDisplay (Expected(..))
 
 type DayNumber = String
 
-data FileType = Sample | Input | ExpectedFile
+data FileType = SampleFile | InputFile | ExpectedFile
   deriving (Show, Eq)
 
 -- Build path to input files
 buildInputPath :: DayNumber -> FileType -> String
 buildInputPath day fileType = "inputs/day" ++ day ++ "/" ++ fileTypeName fileType ++ ".txt"
   where
-    fileTypeName Sample = "sample"
-    fileTypeName Input = "input" 
+    fileTypeName SampleFile = "sample"
+    fileTypeName InputFile = "input" 
     fileTypeName ExpectedFile = "expected"
 
 -- Read input file and return lines

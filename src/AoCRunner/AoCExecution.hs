@@ -43,8 +43,8 @@ executeDayBoth day = do
       expected <- readExpectedResults day
       
       -- Run sample and input
-      sampleInput <- readInputFile day Sample
-      inputInput <- readInputFile day Input
+      sampleInput <- readInputFile day SampleFile
+      inputInput <- readInputFile day InputFile
       
       (sampleResult, sampleTiming) <- executeDay dayRunner sampleInput
       (inputResult, inputTiming) <- executeDay dayRunner inputInput
