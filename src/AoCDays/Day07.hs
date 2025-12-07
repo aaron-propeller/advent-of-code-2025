@@ -30,8 +30,16 @@ partA input =
       (State _ finalSplits _) = runSimulation initialState
   in traceShow startingPosition finalSplits
 
+type EndPositionsReachable = Int
+type VisitedCache = Map.Map Coord EndPositionsReachable
+type ToVisit = [Coord]
+
 partB :: Input -> Output  
-partB _ = 0
+partB input = 
+  let grid = parseGrid input
+      (startingPosition, _) = head . filter (\(_, c) -> c == 'S') $ toList grid
+      endPositionsReachable = runSimulationB grid [startingPosition] Map.empty 0
+  in endPositionsReachable
 
 runSimulation :: State -> State 
 runSimulation (State [] splitCount grid) = State [] splitCount grid
@@ -42,6 +50,46 @@ runSimulation (State positions splitCount grid) =
                                          ) ([], 0) positions
       newState = traceShow newPositions $ State (Set.toList $ Set.fromList newPositions) (splitCount + newSplits) grid
   in traceShow "runSimulation" runSimulation newState
+
+-- perform a depth first search keeping track of the amount of reachable end posistions at each coord
+
+runSimulationB :: Grid -> ToVisit -> VisitedCache -> EndPositionsReachable -> EndPositionsReachable
+runSimulationB grid [] visitedCache endPositionsReachable = endPositionsReachable 
+runSimulationB grid (pos:toVisit) visitedCache endPositionsReachable = 
+  case Map.lookup pos visitedCache of
+    Just reachable -> 
+      runSimulationB grid toVisit visitedCache (endPositionsReachable + reachable)
+    Nothing -> 
+      let (newPositions, _) = movePosition grid pos
+      in if null newPositions 
+         then -- reached the end
+           let newVisitedCache = Map.insert pos 1 visitedCache
+           in runSimulationB grid toVisit newVisitedCache (endPositionsReachable + 1)
+         else 
+           let (reachableFromNew, newVisitedCache) = foldl (\(accReachable, accCache) newPos -> 
+                                                              let (reachable, updatedCache) = explorePosition grid newPos accCache
+                                                              in (accReachable + reachable, updatedCache)
+                                                           ) (0, visitedCache) newPositions
+               finalVisitedCache = Map.insert pos reachableFromNew newVisitedCache
+           in runSimulationB grid toVisit finalVisitedCache (endPositionsReachable + reachableFromNew)
+
+explorePosition :: Grid -> Coord -> VisitedCache -> (EndPositionsReachable, VisitedCache)
+explorePosition grid pos visitedCache = 
+  case Map.lookup pos visitedCache of
+    Just reachable -> (reachable, visitedCache)
+    Nothing -> 
+      let (newPositions, _) = movePosition grid pos
+      in if null newPositions 
+         then -- reached the end
+           let newVisitedCache = Map.insert pos 1 visitedCache
+           in (1, newVisitedCache)
+         else 
+           let (reachableFromNew, newVisitedCache) = foldl (\(accReachable, accCache) newPos -> 
+                                                              let (reachable, updatedCache) = explorePosition grid newPos accCache
+                                                              in (accReachable + reachable, updatedCache)
+                                                           ) (0, visitedCache) newPositions
+               finalVisitedCache = Map.insert pos reachableFromNew newVisitedCache
+           in (reachableFromNew, finalVisitedCache)
 
 -- get next south position 
 -- if ^ 
