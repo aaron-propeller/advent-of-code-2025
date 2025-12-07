@@ -1,6 +1,8 @@
 module AoCUtils.AoCGrid where
 
 import qualified Data.Map as Map
+import Data.List (groupBy, sortBy)
+import Data.Function (on)
 
 -- Common type aliases
 type Coord = (Int, Int)
@@ -12,6 +14,20 @@ parseGrid :: [String] -> Grid
 parseGrid rows = Map.fromList 
   [((x, y), c) | (y, row) <- zip [0..] rows
                , (x, c) <- zip [0..] row]
+
+locationsOf :: Char -> Grid -> [Coord]
+locationsOf target grid = [coord | (coord, char) <- Map.toList grid, char == target]
+
+groupCoordsBy :: (Coord -> Int) -> [Coord] -> [[Coord]]
+groupCoordsBy keyFunc coords = 
+  map (map fst) . groupBy (on (==) snd) $ 
+  sortBy (compare `on` snd) [(coord, keyFunc coord) | coord <- coords]
+
+groupByRow :: [Coord] -> [[Coord]]
+groupByRow = groupCoordsBy snd
+
+groupByCol :: [Coord] -> [[Coord]]
+groupByCol = groupCoordsBy fst
 
 neighbors4 :: Coord -> [Coord]
 neighbors4 (x, y) = [(x+1, y), (x-1, y), (x, y+1), (x, y-1)]
