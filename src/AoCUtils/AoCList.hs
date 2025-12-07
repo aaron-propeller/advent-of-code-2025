@@ -1,7 +1,9 @@
 module AoCUtils.AoCList (
     count, safeHead, safeTail,
-    chunks, windows, pairUp
+    chunks, windows, pairUp, freqMap
 ) where
+
+import qualified Data.Map as Map
 
 -- Common utility functions
 count :: (a -> Bool) -> [a] -> Int
@@ -28,3 +30,7 @@ pairUp :: [a] -> [(a, a)]
 pairUp [] = []
 pairUp [_] = error "pairUp: odd number of elements"
 pairUp (x:y:xs) = (x, y) : pairUp xs
+
+-- Create frequency map from list
+freqMap :: Ord a => [a] -> Map.Map a Int
+freqMap = Map.fromListWith (+) . map (\x -> (x, 1))

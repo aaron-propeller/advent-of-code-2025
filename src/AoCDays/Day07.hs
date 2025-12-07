@@ -5,110 +5,52 @@ import Debug.Trace (traceShow)
 import Data.Map (Map, toList) 
 import qualified Data.Map as Map
 import System.Posix.Internals (statGetType)
-import AoCUtils.AoCList (count)
+import AoCUtils.AoCList (count, freqMap)
 import qualified Data.Set as Set
+import Data.List (groupBy, sortBy, nub, intersect, (\\))
+import Data.Function (on)
 
 type Input = [String]
 type Output = Int
 
-data State = State 
-  { positions :: [Coord]
-  , splitCount :: Int
-  , grid :: Grid 
-  } deriving Show
-
-
--- find starting position of S
--- move all positions south until we find a splitter ^
--- record the split, add the two new positions to the list, repeat until we find the edge of the grid
-
 partA :: Input -> Output
 partA input = 
-  let grid = parseGrid input
-      (startingPosition, _) = head . filter (\(_, c) -> c == 'S') $ toList grid
-      initialState = State [startingPosition] 0 grid
-      (State _ finalSplits _) = runSimulation initialState
-  in traceShow startingPosition finalSplits
-
-type EndPositionsReachable = Int
-type VisitedCache = Map.Map Coord EndPositionsReachable
-type ToVisit = [Coord]
+  let grid = parseGrid input 
+      currentLocations = freqMap $ map (fst . fst) . filter (\(_, c) -> c == 'S') $ toList grid
+      splitterLocations = map fst . filter (\(_, c) -> c == '^') $ toList grid
+      groupedByRowSplitters  = map (map fst) . groupBy (on (==) snd) $ sortBy (compare `on` snd) splitterLocations
+      finalState = fireBeam (currentLocations, 0) groupedByRowSplitters
+  in snd finalState
 
 partB :: Input -> Output  
-partB input = 
-  let grid = parseGrid input
-      (startingPosition, _) = head . filter (\(_, c) -> c == 'S') $ toList grid
-      endPositionsReachable = runSimulationB grid [startingPosition] Map.empty 0
-  in endPositionsReachable
+partB input =
+  let grid = parseGrid input 
+      currentLocations = freqMap $ map (fst . fst) . filter (\(_, c) -> c == 'S') $ toList grid
+      splitterLocations = map fst . filter (\(_, c) -> c == '^') $ toList grid
+      groupedByRowSplitters  = map (map fst) . groupBy (on (==) snd) $ sortBy (compare `on` snd) splitterLocations
+      finalState = fireBeam (currentLocations, 0) groupedByRowSplitters
+  in sum . Map.elems $ fst finalState
 
-runSimulation :: State -> State 
-runSimulation (State [] splitCount grid) = State [] splitCount grid
-runSimulation (State positions splitCount grid) = 
-  let (newPositions, newSplits) = foldl (\(accPositions, accSplits) pos -> 
-                                            let (movedPositions, splits) = movePosition grid pos
-                                            in (accPositions ++ movedPositions, accSplits + splits)
-                                         ) ([], 0) positions
-      newState = traceShow newPositions $ State (Set.toList $ Set.fromList newPositions) (splitCount + newSplits) grid
-  in traceShow "runSimulation" runSimulation newState
 
--- perform a depth first search keeping track of the amount of reachable end posistions at each coord
+type State = (Map Int Int, Int) -- (current location map, split count)
 
-runSimulationB :: Grid -> ToVisit -> VisitedCache -> EndPositionsReachable -> EndPositionsReachable
-runSimulationB grid [] visitedCache endPositionsReachable = endPositionsReachable 
-runSimulationB grid (pos:toVisit) visitedCache endPositionsReachable = 
-  case Map.lookup pos visitedCache of
-    Just reachable -> 
-      runSimulationB grid toVisit visitedCache (endPositionsReachable + reachable)
-    Nothing -> 
-      let (newPositions, _) = movePosition grid pos
-      in if null newPositions 
-         then -- reached the end
-           let newVisitedCache = Map.insert pos 1 visitedCache
-           in runSimulationB grid toVisit newVisitedCache (endPositionsReachable + 1)
-         else 
-           let (reachableFromNew, newVisitedCache) = foldl (\(accReachable, accCache) newPos -> 
-                                                              let (reachable, updatedCache) = explorePosition grid newPos accCache
-                                                              in (accReachable + reachable, updatedCache)
-                                                           ) (0, visitedCache) newPositions
-               finalVisitedCache = Map.insert pos reachableFromNew newVisitedCache
-           in runSimulationB grid toVisit finalVisitedCache (endPositionsReachable + reachableFromNew)
+-- iterate over each splitter location row 
+-- Build a new map by checking to see if each current location touches a splitter 
+-- If it does, split the location and add one to the splitCount
 
-explorePosition :: Grid -> Coord -> VisitedCache -> (EndPositionsReachable, VisitedCache)
-explorePosition grid pos visitedCache = 
-  case Map.lookup pos visitedCache of
-    Just reachable -> (reachable, visitedCache)
-    Nothing -> 
-      let (newPositions, _) = movePosition grid pos
-      in if null newPositions 
-         then -- reached the end
-           let newVisitedCache = Map.insert pos 1 visitedCache
-           in (1, newVisitedCache)
-         else 
-           let (reachableFromNew, newVisitedCache) = foldl (\(accReachable, accCache) newPos -> 
-                                                              let (reachable, updatedCache) = explorePosition grid newPos accCache
-                                                              in (accReachable + reachable, updatedCache)
-                                                           ) (0, visitedCache) newPositions
-               finalVisitedCache = Map.insert pos reachableFromNew newVisitedCache
-           in (reachableFromNew, finalVisitedCache)
+fireBeam :: State -> [[Int]] -> State 
+fireBeam state [] = state
+fireBeam (currentMap, splitCount) (currentSplitterRow:rest) =
+  let (newMap, newSplits) = processRow currentMap currentSplitterRow 
+  in fireBeam (newMap, splitCount + newSplits) rest
 
--- get next south position 
--- if ^ 
---   add east and west positions to new positions 
---   increment split count
--- else if edge of grid 
---  do not add position to new positions 
---  else 
---  add south position to new positions 
---  return (new positions, new splits)
-
-movePosition :: Grid -> Coord -> ([Coord], Int) 
-movePosition grid position = 
-  let southPos = moveCoord South position
-      cell = Map.lookup southPos grid
-  in case cell of
-    Just '^' -> 
-      let eastPos = moveCoord East southPos
-          westPos = moveCoord West southPos
-      in ([eastPos, westPos], 1)
-    Nothing -> ([], 0)
-    Just _ -> ([southPos], 0)
+processRow :: Map Int Int -> [Int] -> (Map Int Int, Int)
+processRow currentMap splitterRow = 
+  let positionsThatHitSplitter = Map.keys currentMap `intersect` splitterRow 
+      positionsThatMissSplitter = Map.keys currentMap \\ splitterRow 
+      splitCount = length positionsThatHitSplitter
+      newPositions = concatMap (\pos -> [(pos - 1, Map.lookup pos currentMap), (pos + 1, Map.lookup pos currentMap)]) positionsThatHitSplitter
+      mapWithoutPositionsThatHitSplitter = Map.filterWithKey (\k _ -> k `elem` positionsThatMissSplitter) currentMap 
+      newPositionsAsMap = Map.fromListWith (+) [(newPos, count) | (newPos, Just count) <- newPositions]
+      combinedMaps = Map.unionWith (+) mapWithoutPositionsThatHitSplitter newPositionsAsMap
+  in (combinedMaps, splitCount)
