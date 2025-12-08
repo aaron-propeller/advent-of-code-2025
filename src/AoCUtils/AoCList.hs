@@ -1,6 +1,7 @@
 module AoCUtils.AoCList (
     count, safeHead, safeTail,
-    chunks, windows, pairUp, freqMap
+    chunks, windows, pairUp, freqMap,
+    iterateUntilStable
 ) where
 
 import qualified Data.Map as Map
@@ -34,3 +35,10 @@ pairUp (x:y:xs) = (x, y) : pairUp xs
 -- Create frequency map from list
 freqMap :: Ord a => [a] -> Map.Map a Int
 freqMap = Map.fromListWith (+) . map (\x -> (x, 1))
+
+-- Iterate function until result stabilizes (no change between iterations)
+iterateUntilStable :: Eq a => (a -> a) -> a -> a
+iterateUntilStable f initial = 
+  let states = iterate f initial
+      pairs = zip states (tail states)
+  in fst . head $ dropWhile (uncurry (/=)) pairs

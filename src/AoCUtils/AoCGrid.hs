@@ -35,6 +35,13 @@ neighbors4 (x, y) = [(x+1, y), (x-1, y), (x, y+1), (x, y-1)]
 neighbors8 :: Coord -> [Coord] 
 neighbors8 (x, y) = [(x+dx, y+dy) | dx <- [-1..1], dy <- [-1..1], (dx, dy) /= (0, 0)]
 
+neighborsMatching :: (Char -> Bool) -> Coord -> Grid -> [Coord]
+neighborsMatching predicate coord grid = 
+  filter (\c -> maybe False predicate (Map.lookup c grid)) (neighbors8 coord)
+
+partitionMapBy :: (k -> Bool) -> Map.Map k v -> (Map.Map k v, Map.Map k v)
+partitionMapBy predicate = Map.partitionWithKey (const . predicate)
+
 -- Direction helpers
 moveCoord :: Direction -> Coord -> Coord
 moveCoord North (x, y) = (x, y-1)

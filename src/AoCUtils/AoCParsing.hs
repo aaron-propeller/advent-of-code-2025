@@ -2,6 +2,7 @@ module AoCUtils.AoCParsing where
 
 import Data.Maybe (mapMaybe)
 import Text.Read (readMaybe)
+import Text.Regex.Posix (AllTextMatches(getAllTextMatches), (=~))
 
 -- Common parsing utilities
 parseNumbers :: String -> [Int]
@@ -25,3 +26,11 @@ splitAtSep :: Eq a => a -> [a] -> ([a], [a])
 splitAtSep sep xs = 
   let (before, after) = break (== sep) xs
   in (before, drop 1 after)
+
+-- Extract integers (including negative) from mixed text
+extractInts :: String -> [Int]
+extractInts = mapMaybe readMaybe . getAllTextMatches . (=~ "-?[0-9]+")
+
+-- Extract all numbers (integers and decimals, including negative) from mixed text  
+extractNumbers :: String -> [Double]
+extractNumbers = mapMaybe readMaybe . getAllTextMatches . (=~ "-?[0-9]+\\.?[0-9]*")
