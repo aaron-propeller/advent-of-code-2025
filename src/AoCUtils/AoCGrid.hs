@@ -6,6 +6,7 @@ import Data.Function (on)
 
 -- Common type aliases
 type Coord = (Int, Int)
+type Coord3D = (Int, Int, Int)
 type Grid = Map.Map Coord Char
 data Direction = North | South | East | West deriving (Show, Eq, Ord, Enum)
 
@@ -64,3 +65,10 @@ turnRight West = North
 -- Math utilities
 manhattanDistance :: Coord -> Coord -> Int
 manhattanDistance (x1, y1) (x2, y2) = abs (x1 - x2) + abs (y1 - y2)
+
+manhattenDistance3D :: Coord3D -> Coord3D -> Int 
+manhattenDistance3D (x1, y1, z1) (x2, y2, z2) = abs (x1 - x2) + abs (y1 - y2) + abs (z1 - z2)
+
+euclideanDistance :: Coord3D -> Coord3D -> Double 
+euclideanDistance (x1, y1, z1) (x2, y2, z2) = 
+  sqrt (fromIntegral ((x1 - x2)^2 + (y1 - y2)^2 + (z1 - z2)^2))
