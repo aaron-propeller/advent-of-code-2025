@@ -33,6 +33,21 @@ executeDay dayRunner input = do
   let timing = Timing parseDuration solveTimeA solveTimeB
   return (result, timing)
 
+-- Execute sample only for a day
+executeDaySample :: DayNumber -> IO ()
+executeDaySample day = do
+  case getDayRunner day of
+    Nothing -> error $ "Unknown day: " ++ day
+    Just dayRunner -> do
+      -- Read expected results and sample input
+      expected <- readExpectedResults day
+      sampleInput <- readInputFile day SampleFile
+      (sampleResult, sampleTiming) <- executeDay dayRunner sampleInput
+      
+      -- Display sample results with expected comparison
+      putStrLn $ "=== Day " ++ day ++ " (Sample Only) ==="
+      displayDayResults day sampleResult sampleTiming expected sampleResult sampleTiming
+
 -- Execute both sample and input for a day with enhanced display
 executeDayBoth :: DayNumber -> IO ()
 executeDayBoth day = do

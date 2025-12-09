@@ -1,7 +1,7 @@
 module AoCDays.Day02 (partA, partB) where
 
 import Text.Regex.Posix (AllTextMatches(getAllTextMatches), (=~))
-import AoCUtils.AoCList (pairUp)
+import AoCUtils.AoCTuple (pairUp)
 
 type Input = [String]
 type Output = Int

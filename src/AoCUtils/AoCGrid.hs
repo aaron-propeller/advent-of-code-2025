@@ -16,6 +16,10 @@ parseGrid rows = Map.fromList
   [((x, y), c) | (y, row) <- zip [0..] rows
                , (x, c) <- zip [0..] row]
 
+createGrid :: Int -> Int -> Char -> Grid 
+createGrid width height fillChar = 
+  Map.fromList [((x, y), fillChar) | y <- [0..height-1], x <- [0..width-1]]
+
 locationsOf :: Char -> Grid -> [Coord]
 locationsOf target grid = [coord | (coord, char) <- Map.toList grid, char == target]
 

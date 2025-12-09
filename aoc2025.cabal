@@ -9,18 +9,20 @@ build-type: Simple
 executable aoc
     main-is: Main.hs
     other-modules:
-        AoCUtils.AoCParsing, AoCUtils.AoCGrid, AoCUtils.AoCList, AoCUtils.AoCRange,
+        AoCUtils.AoCParsing, AoCUtils.AoCGrid, AoCUtils.AoCList, AoCUtils.AoCRange, AoCUtils.AoCTuple,
         AoCRunner.AoCDisplay, AoCRunner.AoCCLI, AoCRunner.AoCRegistry, AoCRunner.AoCExecution, AoCRunner.AoCFiles,
         AoCDays.Day01, AoCDays.Day02, AoCDays.Day03, AoCDays.Day04,
         AoCDays.Day05, AoCDays.Day06, AoCDays.Day07, AoCDays.Day08,
         AoCDays.Day09, AoCDays.Day10, AoCDays.Day11, AoCDays.Day12
     hs-source-dirs: src
     default-language: Haskell2010
-    ghc-options: -w
+    ghc-options: -w -threaded
     build-depends: 
         base >= 4.7 && < 5,
         containers,
         directory,
         filepath,
+        heaps,
+        parallel,
         regex-posix,
         time

@@ -9,6 +9,7 @@ type DayNumber = String
 
 data AoCCommand 
   = RunBoth DayNumber           -- Run both sample and input for a day
+  | RunSample DayNumber         -- Run sample only for a day
   | RunSingle DayNumber String  -- Run specific day with custom input file
   deriving (Show, Eq)
 
@@ -18,6 +19,9 @@ parseArgs availableDays args = case args of
   [day] -> do
     validDay <- validateDayFormat availableDays day
     return $ RunBoth validDay
+  [day, "sample"] -> do
+    validDay <- validateDayFormat availableDays day
+    return $ RunSample validDay
   [day, inputFile] -> do
     validDay <- validateDayFormat availableDays day
     return $ RunSingle validDay inputFile
@@ -48,10 +52,11 @@ validateDayFormat availableDays dayStr = do
 -- Usage message
 usageMessage :: String
 usageMessage = unlines
-  [ "Usage: aoc <day> [input-file]"
+  [ "Usage: aoc <day> [sample|input-file]"
   , ""
   , "Examples:"
   , "  aoc 1              # Runs both sample and input for Day 1"
+  , "  aoc 1 sample       # Runs only sample for Day 1"
   , "  aoc 4 custom.txt   # Uses custom file path for Day 4"
   ]
 

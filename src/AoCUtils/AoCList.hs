@@ -1,7 +1,7 @@
 module AoCUtils.AoCList (
     count, safeHead, safeTail,
-    chunks, windows, pairUp, freqMap,
-    iterateUntilStable
+    chunks, windows, freqMap,
+    iterateUntilStable, uniquePairs
 ) where
 
 import qualified Data.Map as Map
@@ -26,11 +26,6 @@ chunks n xs = take n xs : chunks n (drop n xs)
 windows :: Int -> [a] -> [[a]]
 windows n xs = map (take n) (take (length xs - n + 1) (iterate tail xs))
 
--- Pair up elements into tuples, error if odd number
-pairUp :: [a] -> [(a, a)]
-pairUp [] = []
-pairUp [_] = error "pairUp: odd number of elements"
-pairUp (x:y:xs) = (x, y) : pairUp xs
 
 -- Create frequency map from list
 freqMap :: Ord a => [a] -> Map.Map a Int
@@ -42,3 +37,7 @@ iterateUntilStable f initial =
   let states = iterate f initial
       pairs = zip states (tail states)
   in fst . head $ dropWhile (uncurry (/=)) pairs
+
+-- Generate all unique pairs from a list, avoiding duplicates (a,b) and (b,a)
+uniquePairs :: Ord a => [a] -> [(a, a)]
+uniquePairs xs = [(a, b) | a <- xs, b <- xs, a /= b, a < b]
