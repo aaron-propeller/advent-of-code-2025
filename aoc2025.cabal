@@ -25,4 +25,6 @@ executable aoc
         heaps,
         parallel,
         regex-posix,
-        time
+        time,
+        process,
+        temporary,

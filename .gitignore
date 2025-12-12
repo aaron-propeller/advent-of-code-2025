@@ -22,3 +22,6 @@ cabal.project.local~
 .HTF/
 .ghc.environment.*
 debug.log
+*.smt2
+all_z3_output.txt
+
